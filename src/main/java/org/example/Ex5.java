@@ -5,6 +5,7 @@ public class Ex5 {
 
         private static final int INT_BASKET_COUNT = 16;
         private static final double LOAD_FACTOR = 0.75;
+        private int size = 0;
         private Basket[] baskets;
 
         public HashTable() {
@@ -19,6 +20,20 @@ public class Ex5 {
             return key.hashCode() % baskets.length;
         }
 
+        public void recalculate() {
+            Basket[] old = baskets;
+            baskets = (Basket[]) new Object[old.length * 2];
+            for (int i = 0; i < old.length; i++) {
+                Basket basket = old[i];
+                Basket.Node node = basket.head;
+                while (node != null) {
+                    put(node.value.key, node.value.value);
+                    node = node.next;
+                }
+                old[i] = null;
+            }
+        }
+
         public V get(K key) {
             int index = calculateBasketIndex(key);
             Basket basket = baskets[index];
@@ -31,10 +46,15 @@ public class Ex5 {
         public boolean remove(K key) {
             int index = calculateBasketIndex(key);
             Basket basket = baskets[index];
-            return basket.remove(key);
+            boolean flag = basket.remove(key);
+            if (flag) size--;
+            return flag;
         }
 
         public boolean put(K key, V value) {
+            if (size >= LOAD_FACTOR * baskets.length) {
+                recalculate();
+            }
             int index = calculateBasketIndex(key);
             Basket basket = baskets[index];
             if (basket == null) {
@@ -44,7 +64,9 @@ public class Ex5 {
             Entity entity = new Entity();
             entity.key = key;
             entity.value = value;
-            return basket.put(entity);
+            boolean flag = basket.put(entity);
+            if (flag) size++;
+            return flag;
         }
 
 
